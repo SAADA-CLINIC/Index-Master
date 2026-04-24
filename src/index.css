@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg-sidebar: var(--sidebar-bg);
+  --color-bg-main: var(--main-bg);
+  --color-text-main: var(--main-text);
+  --color-border-subtle: var(--border-color);
+}
+
+@layer base {
+  :root {
+    /* الوضع الغامق الأصلي (بدون تغيير) */
+    --sidebar-bg: #141417;
+    --main-bg: #0A0A0B;
+    --main-text: #ffffff;
+    --border-color: #2D2D33;
+  }
+
+  /* الوضع الفاتح العصري */
+  html.theme-light {
+    --sidebar-bg: #f1f5f9;
+    --main-bg: #ffffff;
+    --main-text: #0f172a;
+    --border-color: #e2e8f0;
+  }
+
+  /* الوضع البيج (طلبك: يمين فاتح وشمال أغمق) */
+  html.theme-beige {
+    --sidebar-bg: #E8DCC4; /* بيج أغمق للجانب الأيسر */
+    --main-bg: #FDF8EE;    /* بيج أفتح جداً للجانب الأيمن */
+    --main-text: #3E2723;  /* بني غامق للنصوص */
+    --border-color: #D7CCC8;
+  }
+
+  body {
+    background-color: var(--main-bg);
+    color: var(--main-text);
+    transition: all 0.3s ease;
+  }
+}
