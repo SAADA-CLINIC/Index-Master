@@ -1,0 +1,6 @@
+{
+  "name": "Aura File Manager",
+  "description": "A robust, offline-first file management system with advanced indexing, categorization, and a modern WPF-inspired UI.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
