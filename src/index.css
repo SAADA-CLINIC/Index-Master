@@ -1,40 +1,157 @@
 @import "tailwindcss";
 
+/* ==============================================
+   🎨 نظام السمات المُوحَّد – IndexMaster
+   ============================================== */
+
 @theme {
   --color-bg-sidebar: var(--sidebar-bg);
   --color-bg-main: var(--main-bg);
+  --color-bg-deep: var(--deep-bg);
   --color-text-main: var(--main-text);
+  --color-text-dim: var(--dim-text);
   --color-border-subtle: var(--border-color);
+  --color-accent: var(--accent-color);
 }
 
 @layer base {
+  /* 
+     الوضع الافتراضي: غامق أنيق 
+     (يتوافق مع تفضيلات النظام عبر prefers-color-scheme إن لم يُحدد وضع) 
+  */
   :root {
-    /* الوضع الغامق الأصلي (بدون تغيير) */
-    --sidebar-bg: #141417;
-    --main-bg: #0A0A0B;
-    --main-text: #ffffff;
-    --border-color: #2D2D33;
+    --sidebar-bg: #0f0f13;
+    --main-bg: #08080a;
+    --deep-bg: #050508;
+    --main-text: #f1f5f9;
+    --dim-text: #94a3b8;
+    --border-color: #1e1e2a;
+    --accent-color: #3b82f6; /* أزرق كهربائي */
+    
+    color-scheme: dark;
+    --transition-speed: 0.3s;
   }
 
   /* الوضع الفاتح العصري */
   html.theme-light {
-    --sidebar-bg: #f1f5f9;
+    --sidebar-bg: #f8fafc;
     --main-bg: #ffffff;
+    --deep-bg: #f1f5f9;
     --main-text: #0f172a;
+    --dim-text: #64748b;
     --border-color: #e2e8f0;
+    --accent-color: #2563eb;
+    
+    color-scheme: light;
   }
 
-  /* الوضع البيج (طلبك: يمين فاتح وشمال أغمق) */
+  /* الوضع البيج الدافئ – بتصميم متوازن */
   html.theme-beige {
-    --sidebar-bg: #E8DCC4; /* بيج أغمق للجانب الأيسر */
-    --main-bg: #FDF8EE;    /* بيج أفتح جداً للجانب الأيمن */
-    --main-text: #3E2723;  /* بني غامق للنصوص */
-    --border-color: #D7CCC8;
+    --sidebar-bg: #e7dfcd;
+    --main-bg: #fdf8ef;
+    --deep-bg: #efe8d8;
+    --main-text: #3e2723;
+    --dim-text: #8b6f5e;
+    --border-color: #d7ccc8;
+    --accent-color: #c65d3c; /* طوبي دافئ */
+    
+    color-scheme: light;
   }
 
+  /*
+    إعدادات عامة للجسم بانتقالات حريرية 
+    وتأثيرات زجاجية اختيارية للشريط الجانبي
+  */
   body {
+    margin: 0;
+    padding: 0;
     background-color: var(--main-bg);
     color: var(--main-text);
-    transition: all 0.3s ease;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    transition: 
+      background-color var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1),
+      color var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* تأثير ساتان خفيف على الخلفيات الزجاجية (يُستخدم داخل المكونات عبر كود CSS أو Tailwind) */
+  .glass-panel {
+    background-color: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color);
+  }
+
+  /* شريط تمرير مخصص يتبع الوضع الحالي */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-color) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: var(--border-color);
+    border-radius: 20px;
+    transition: background-color 0.2s;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--dim-text);
+  }
+
+  /* تحسينات بصرية للنصوص */
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--main-text);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  /* ألوان الروابط */
+  a, .link {
+    color: var(--accent-color);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  a:hover, .link:hover {
+    filter: brightness(1.2);
+  }
+
+  /* تحسينات للعناصر النشطة */
+  ::selection {
+    background-color: var(--accent-color);
+    color: white;
+  }
+
+  /* تحسين التركيز للوحة المفاتيح */
+  :focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* رسوم متحركة مخصصة للـ skeleton loaders أو النبضات */
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.05) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
   }
 }
