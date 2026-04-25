@@ -1,4 +1,4 @@
-export type FileCategory = 'Word Files' | 'PDF & E-books' | 'Videos' | 'All';
+export type FileCategory = 'Word Files' | 'PDF & E-books' | 'Videos' | 'Images' | 'All';
 
 export interface FileItem {
   id: string;
