@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { 
-  Search, FileText, Book, Film, Database, Settings, HardDrive, 
-  Moon, Sun, Coffee, RefreshCw, Image as ImageIcon, FolderOpen 
+import {
+  Search, FileText, Book, Film, Database, Settings, HardDrive,
+  Moon, Sun, Coffee, RefreshCw, Image as ImageIcon, FolderOpen
 } from 'lucide-react';
 import { FileCategory } from '../types';
 import { cn } from '../lib/utils';
@@ -12,6 +12,7 @@ interface SidebarProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onScanFolder: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  isScanning: boolean; // ✅ يتحكم في حالة زر المسح
 }
 
 // تعريف إضافي ليدعم webkitdirectory في TypeScript بدون @ts-ignore
@@ -22,7 +23,14 @@ declare module 'react' {
   }
 }
 
-export default function Sidebar({ activeCategory, onCategoryChange, searchQuery, onSearchChange, onScanFolder }: SidebarProps) {
+export default function Sidebar({
+  activeCategory,
+  onCategoryChange,
+  searchQuery,
+  onSearchChange,
+  onScanFolder,
+  isScanning, // ✅ استقبال الخاصية الجديدة
+}: SidebarProps) {
   const [showSettings, setShowSettings] = useState(false);
 
   const navItems = [
@@ -33,15 +41,14 @@ export default function Sidebar({ activeCategory, onCategoryChange, searchQuery,
     { id: 'Images', icon: ImageIcon, label: 'Images' },
   ];
 
-  // تحسين: تغيير الثيم عبر State بدل التلاعب المباشر بالـ DOM
+  // تغيير الثيم عبر State
   const applyTheme = (theme: string) => {
-    document.documentElement.className = theme; // يمكن استبدالها بـ Context إذا أردت
-    setShowSettings(false); // إغلاق القائمة بعد الاختيار
+    document.documentElement.className = theme;
+    setShowSettings(false);
   };
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-64 bg-bg-sidebar border-r border-border-subtle flex flex-col pt-8 z-10 shadow-xl transition-colors duration-300">
-      
       {/* Logo Section */}
       <div className="p-6 mb-2 flex items-center gap-3">
         <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center shadow-[0_0_15px_rgba(37,99,235,0.5)]">
@@ -50,11 +57,16 @@ export default function Sidebar({ activeCategory, onCategoryChange, searchQuery,
         <span className="text-lg font-bold tracking-tight text-text-main">IndexMaster</span>
       </div>
 
-      {/* Scan Folder Button */}
+      {/* Scan Folder Button – معطَّل أثناء الفحص */}
       <div className="px-4 mb-6">
-        <label className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg cursor-pointer transition-all shadow-lg shadow-blue-500/20 text-sm font-bold active:scale-95">
+        <label
+          className={cn(
+            "flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg cursor-pointer transition-all shadow-lg shadow-blue-500/20 text-sm font-bold active:scale-95",
+            isScanning && "opacity-50 cursor-not-allowed pointer-events-none" // ✅ تعطيل كامل
+          )}
+        >
           <FolderOpen size={18} />
-          Scan Folder
+          {isScanning ? 'Scanning…' : 'Scan Folder'}
           <input
             type="file"
             webkitdirectory=""
@@ -62,6 +74,7 @@ export default function Sidebar({ activeCategory, onCategoryChange, searchQuery,
             multiple
             className="hidden"
             onChange={onScanFolder}
+            disabled={isScanning} // ✅ تعطيل فعلي للمدخل
           />
         </label>
       </div>
@@ -89,8 +102,8 @@ export default function Sidebar({ activeCategory, onCategoryChange, searchQuery,
             onClick={() => onCategoryChange(item.id as FileCategory)}
             className={cn(
               "w-full flex items-center gap-3 px-6 py-3 text-sm font-medium transition-all relative",
-              activeCategory === item.id 
-                ? "bg-blue-600/10 text-text-main border-l-2 border-blue-500 shadow-[inset_10px_0_20px_-10px_rgba(59,130,246,0.2)]" 
+              activeCategory === item.id
+                ? "bg-blue-600/10 text-text-main border-l-2 border-blue-500 shadow-[inset_10px_0_20px_-10px_rgba(59,130,246,0.2)]"
                 : "text-zinc-400 hover:text-text-main hover:bg-black/5 border-l-2 border-transparent"
             )}
           >
@@ -118,7 +131,7 @@ export default function Sidebar({ activeCategory, onCategoryChange, searchQuery,
             </div>
           )}
 
-          <button 
+          <button
             onClick={() => setShowSettings(!showSettings)}
             className={cn(
               "flex items-center gap-3 px-3 py-2 text-xs font-medium transition-colors rounded-lg",
