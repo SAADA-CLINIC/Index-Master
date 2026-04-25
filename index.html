@@ -1,13 +1,40 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- تحسينات SEO و PWA -->
+    <meta name="description" content="IndexMaster – Intelligent file indexing and management application" />
+    <meta name="theme-color" content="#0f0f13" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
+    <meta name="application-name" content="IndexMaster" />
+    
+    <!-- أيقونات للمتصفح (اختياري لنسخة الويب) -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    
+    <!-- تحميل خط Inter من Google Fonts (اختياري – يطابق ما وُضع في CSS) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link 
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" 
+      rel="stylesheet" 
+    />
+
     <title>IndexMaster</title>
   </head>
   <body>
     <div id="root"></div>
+    
+    <!-- رسالة احتياطية للمتصفحات التي لا تدعم JavaScript -->
+    <noscript>
+      <div style="padding: 2rem; text-align: center; font-family: sans-serif;">
+        <h2>IndexMaster requires JavaScript</h2>
+        <p>Please enable JavaScript to run this application.</p>
+      </div>
+    </noscript>
+    
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-
