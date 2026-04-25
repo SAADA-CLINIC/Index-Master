@@ -63,6 +63,49 @@ export default function FileGrid({
     }
   };
 
+  const handleOpenFile = (filePath: string) => {
+    try {
+      // @ts-ignore - يفترض وجود window.require في بيئة Electron مع nodeIntegration
+      const { shell } = window.require('electron');
+      shell.openPath(filePath);
+    } catch (error) {
+      console.error("Failed to open file:", error);
+    }
+  };
+
+  // الحصول على مسار الملف بواسطة id
+  const getFilePathById = (id: string): string | undefined => {
+    const file = files.find(f => f.id === id);
+    return file?.path; // تأكد من وجود خاصية path في FileItem
+  };
+
+  // تنفيذ إجراء من قائمة السياق
+  const handleContextMenuAction = (action: string, fileId: string | null) => {
+    if (!fileId) return;
+    const filePath = getFilePathById(fileId);
+    if (!filePath) return;
+
+    switch (action) {
+      case 'open':
+        handleOpenFile(filePath);
+        break;
+      case 'loc':
+        // يمكنك استخدام shell.showItemInFolder(filePath) بنفس الطريقة
+        try {
+          const { shell } = window.require('electron');
+          shell.showItemInFolder(filePath);
+        } catch (error) {
+          console.error("Failed to show file location:", error);
+        }
+        break;
+      case 'delete':
+        // أضف استدعاء حذف الملف هنا (تحتاج إلى API خارجي)
+        break;
+      // ... باقي الإجراءات
+    }
+    setContextMenu(null);
+  };
+
   return (
     <div className="flex-1 flex flex-col h-screen overflow-hidden bg-bg-main text-text-main relative transition-colors duration-300">
       
@@ -137,6 +180,10 @@ export default function FileGrid({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 onClick={(e) => toggleSelection(e, file.id)}
+                onDoubleClick={() => {
+                  const filePath = getFilePathById(file.id);
+                  if (filePath) handleOpenFile(filePath);
+                }}
                 onContextMenu={(e) => handleContextMenu(e, file.id)}
                 className={cn(
                   "relative group flex cursor-pointer transition-all rounded-xl border",
@@ -209,6 +256,7 @@ export default function FileGrid({
                 ) : (
                   <button
                     key={idx}
+                    onClick={() => handleContextMenuAction(item.action, contextMenu.fileId)}
                     className={cn(
                       "w-full px-4 py-1.5 text-[11px] font-medium text-left transition-colors flex justify-between items-center",
                       item.textClass ? item.textClass : "text-zinc-500 hover:bg-blue-600 hover:text-white"
