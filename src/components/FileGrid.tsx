@@ -31,7 +31,6 @@ export default function FileGrid({
   const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
   const [contextMenu, setContextMenu] = React.useState<{ x: number, y: number, fileId: string | null } | null>(null);
 
-  // وظيفة تحديد الملفات (Click or Ctrl+Click)
   const toggleSelection = (e: React.MouseEvent, id: string) => {
     if (e.ctrlKey || e.metaKey) {
       setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
@@ -40,7 +39,6 @@ export default function FileGrid({
     }
   };
 
-  // وظيفة فتح قائمة الكليك يمين
   const handleContextMenu = (e: React.MouseEvent, id: string) => {
     e.preventDefault();
     setContextMenu({ x: e.clientX, y: e.clientY, fileId: id });
@@ -54,18 +52,50 @@ export default function FileGrid({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const getFileIcon = (category: string) => {
+  // دالة ترجع أيقونة الملف مع الخلفية الصلبة حسب الفئة
+  const getFileIcon = (category: string, isSelected: boolean) => {
+    const size = viewMode === 'list' ? 20 : 32;
+    let icon;
+    let bgColor;
+    
     switch (category) {
-      case 'Word Files': return <FileText className="text-blue-500" size={viewMode === 'list' ? 18 : 28} />;
-      case 'PDF & E-books': return <Book className="text-red-500" size={viewMode === 'list' ? 18 : 28} />;
-      case 'Videos': return <Film className="text-purple-500" size={viewMode === 'list' ? 18 : 28} />;
-      default: return <FileText className="text-zinc-500" size={viewMode === 'list' ? 18 : 28} />;
+      case 'Word Files':
+        icon = <FileText size={size} className="text-white" />;
+        bgColor = 'bg-blue-500';
+        break;
+      case 'PDF & E-books':
+        icon = <Book size={size} className="text-white" />;
+        bgColor = 'bg-red-500';
+        break;
+      case 'Videos':
+        icon = <Film size={size} className="text-white" />;
+        bgColor = 'bg-purple-500';
+        break;
+      case 'Images':
+        icon = <FileText size={size} className="text-white" />; // يمكن استخدام ImageIcon، لكننا نستخدم FileText كمثال
+        bgColor = 'bg-green-500';
+        break;
+      default:
+        icon = <FileText size={size} className="text-white" />;
+        bgColor = 'bg-gray-500';
     }
+
+    return (
+      <div className={cn(
+        'flex items-center justify-center rounded-lg transition-all',
+        bgColor,
+        isSelected ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-bg-main' : '',
+        viewMode === 'list' ? 'w-10 h-10' : 'w-16 h-16 mb-3'
+      )}>
+        {icon}
+      </div>
+    );
   };
 
+  // معالج فتح الملف (إذا كان Electron)
   const handleOpenFile = (filePath: string) => {
     try {
-      // @ts-ignore - يفترض وجود window.require في بيئة Electron مع nodeIntegration
+      // @ts-ignore
       const { shell } = window.require('electron');
       shell.openPath(filePath);
     } catch (error) {
@@ -73,13 +103,11 @@ export default function FileGrid({
     }
   };
 
-  // الحصول على مسار الملف بواسطة id
   const getFilePathById = (id: string): string | undefined => {
     const file = files.find(f => f.id === id);
-    return file?.path; // تأكد من وجود خاصية path في FileItem
+    return file?.path;
   };
 
-  // تنفيذ إجراء من قائمة السياق
   const handleContextMenuAction = (action: string, fileId: string | null) => {
     if (!fileId) return;
     const filePath = getFilePathById(fileId);
@@ -90,7 +118,6 @@ export default function FileGrid({
         handleOpenFile(filePath);
         break;
       case 'loc':
-        // يمكنك استخدام shell.showItemInFolder(filePath) بنفس الطريقة
         try {
           const { shell } = window.require('electron');
           shell.showItemInFolder(filePath);
@@ -98,10 +125,7 @@ export default function FileGrid({
           console.error("Failed to show file location:", error);
         }
         break;
-      case 'delete':
-        // أضف استدعاء حذف الملف هنا (تحتاج إلى API خارجي)
-        break;
-      // ... باقي الإجراءات
+      // delete etc...
     }
     setContextMenu(null);
   };
@@ -109,7 +133,7 @@ export default function FileGrid({
   return (
     <div className="flex-1 flex flex-col h-screen overflow-hidden bg-bg-main text-text-main relative transition-colors duration-300">
       
-      {/* Toolbar - يحتوي على المسار وأدوات الفرز */}
+      {/* Toolbar */}
       <header className="h-16 border-b border-border-subtle flex items-center justify-between px-8 bg-opacity-5 backdrop-blur-md">
         <div className="flex items-center gap-2 text-sm text-zinc-500">
           <span className="hover:text-blue-500 cursor-pointer transition-colors">Root</span>
@@ -118,7 +142,6 @@ export default function FileGrid({
         </div>
 
         <div className="flex items-center gap-4">
-          {/* فرز الملفات */}
           <div className="flex bg-black/5 rounded-lg p-1 border border-border-subtle">
             {(['name', 'size', 'dateModified'] as SortField[]).map((field) => (
               <button
@@ -139,7 +162,6 @@ export default function FileGrid({
           
           <div className="w-[1px] h-4 bg-border-subtle"></div>
 
-          {/* تبديل شكل العرض (Grid or List) */}
           <div className="flex gap-1">
             {(['list', 'medium'] as ViewMode[]).map((mode) => (
               <button
@@ -159,7 +181,7 @@ export default function FileGrid({
         </div>
       </header>
 
-      {/* منطقة عرض الملفات */}
+      {/* Main content */}
       <main className="flex-1 overflow-y-auto p-8 custom-scrollbar">
         {files.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-zinc-500">
@@ -193,16 +215,8 @@ export default function FileGrid({
                   selectedIds.includes(file.id) && "bg-blue-600/10 border-blue-600/30 shadow-[inset_0_0_20px_rgba(59,130,246,0.05)]"
                 )}
               >
-                {/* أيقونة الملف */}
-                <div className={cn(
-                  "flex items-center justify-center rounded-lg transition-all",
-                  selectedIds.includes(file.id) 
-                    ? "bg-blue-600 text-white shadow-[0_0_15px_rgba(59,130,246,0.3)]" 
-                    : "bg-black/5 text-blue-500 group-hover:scale-105",
-                  viewMode === 'list' ? "w-9 h-9" : "w-14 h-16 mb-3"
-                )}>
-                  {getFileIcon(file.category)}
-                </div>
+                {/* أيقونة الملف مع الخلفية الصلبة */}
+                {getFileIcon(file.category, selectedIds.includes(file.id))}
 
                 {/* بيانات الملف */}
                 <div className={cn(
@@ -218,7 +232,6 @@ export default function FileGrid({
                   </span>
                 </div>
 
-                {/* علامة الملف المكرر */}
                 {file.isDuplicate && (
                   <div className="absolute top-2 right-2 text-orange-500" title="Duplicate Found">
                     <AlertCircle size={12} />
@@ -230,7 +243,7 @@ export default function FileGrid({
         )}
       </main>
 
-      {/* قائمة الكليك يمين (ContextMenu) */}
+      {/* Context Menu */}
       <AnimatePresence>
         {contextMenu && (
           <>
@@ -271,7 +284,7 @@ export default function FileGrid({
         )}
       </AnimatePresence>
 
-      {/* شريط الحالة السفلي */}
+      {/* Footer */}
       <footer className="h-8 border-t border-border-subtle flex items-center justify-between px-6 bg-black/5 text-[9px] text-zinc-500 font-bold uppercase tracking-wider">
         <div className="flex items-center gap-4">
           <span>{files.length.toLocaleString()} Files Found</span>
