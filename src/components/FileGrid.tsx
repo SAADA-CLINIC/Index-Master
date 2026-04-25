@@ -52,51 +52,39 @@ export default function FileGrid({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  // دالة ترجع أيقونة الملف مع الخلفية الصلبة حسب الفئة (مكبرة)
-  const getFileIcon = (category: string, isSelected: boolean) => {
-    // ضاعفنا الأحجام: للشبكة 56px، للقائمة 36px
-    const sizeIcon = viewMode === 'list' ? 28 : 48;
-    let icon;
-    let bgColor;
-    
+  // تعيين لون النص بناءً على الفئة
+  const getCategoryColor = (category: string): string => {
     switch (category) {
-      case 'Word Files':
-        icon = <FileText size={sizeIcon} className="text-white" />;
-        bgColor = 'bg-blue-500';
-        break;
-      case 'PDF & E-books':
-        icon = <Book size={sizeIcon} className="text-white" />;
-        bgColor = 'bg-red-500';
-        break;
-      case 'Videos':
-        icon = <Film size={sizeIcon} className="text-white" />;
-        bgColor = 'bg-purple-500';
-        break;
-      case 'Images':
-        icon = <FileText size={sizeIcon} className="text-white" />; // يمكن استبداله بـ ImageIcon
-        bgColor = 'bg-green-500';
-        break;
-      default:
-        icon = <FileText size={sizeIcon} className="text-white" />;
-        bgColor = 'bg-gray-500';
+      case 'Word Files': return 'text-blue-400';
+      case 'PDF & E-books': return 'text-red-400';
+      case 'Videos': return 'text-purple-400';
+      case 'Images': return 'text-green-400';
+      default: return 'text-gray-400';
     }
+  };
 
-    // أحجام الحاوية مكبرة أيضًا: للشبكة 20×20 (تعادل 80px)، للقائمة 12×12 (48px)
-    const containerSize = viewMode === 'list' ? 'w-14 h-14' : 'w-20 h-20 mb-4';
+  // الأيقونة الجديدة: مربع داكن يحتوي على نص الامتداد
+  const getFileIcon = (extension: string, category: string, isSelected: boolean) => {
+    // إزالة النقطة من الامتداد وجعله كبيرًا
+    const ext = extension.replace('.', '').toUpperCase().substring(0, 4); // أقصى حد 4 حروف مثل DOCX
+    const textSize = viewMode === 'list' ? 'text-sm' : 'text-lg'; // حجم النص حسب وضع العرض
+    const boxSize = viewMode === 'list' 
+      ? 'w-14 h-14 rounded-xl' 
+      : 'w-20 h-20 rounded-2xl'; // مربعات أكبر في الشبكة
 
     return (
       <div className={cn(
-        'flex items-center justify-center rounded-xl transition-all', // rounded-xl أنعم
-        bgColor,
+        'flex items-center justify-center font-bold tracking-tight bg-gray-900/90 border border-gray-700 transition-all',
+        boxSize,
+        getCategoryColor(category),
         isSelected ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-bg-main' : '',
-        containerSize
+        viewMode === 'list' ? '' : 'mb-4'
       )}>
-        {icon}
+        {ext}
       </div>
     );
   };
 
-  // معالج فتح الملف (إذا كان Electron)
   const handleOpenFile = (filePath: string) => {
     try {
       // @ts-ignore
@@ -129,7 +117,7 @@ export default function FileGrid({
           console.error("Failed to show file location:", error);
         }
         break;
-      // delete etc...
+      // باقي الإجراءات ...
     }
     setContextMenu(null);
   };
@@ -194,10 +182,10 @@ export default function FileGrid({
           </div>
         ) : (
           <div className={cn(
-            "grid gap-6", // زيادة الفراغ بين العناصر
+            "grid gap-6",
             viewMode === 'list' 
               ? "grid-cols-1" 
-              : "grid-cols-[repeat(auto-fill,minmax(160px,1fr))]" // عرض أدنى أكبر
+              : "grid-cols-[repeat(auto-fill,minmax(160px,1fr))]"
           )}>
             {files.map((file) => (
               <motion.div
@@ -214,13 +202,13 @@ export default function FileGrid({
                 className={cn(
                   "relative group flex cursor-pointer transition-all rounded-xl border",
                   viewMode === 'list' 
-                    ? "flex-row items-center gap-6 px-5 py-4 border-transparent hover:bg-black/5" // مساحات أكبر
-                    : "flex-col items-center p-6 border-transparent hover:bg-black/5 hover:border-border-subtle", // padding أكبر
+                    ? "flex-row items-center gap-6 px-5 py-4 border-transparent hover:bg-black/5"
+                    : "flex-col items-center p-6 border-transparent hover:bg-black/5 hover:border-border-subtle",
                   selectedIds.includes(file.id) && "bg-blue-600/10 border-blue-600/30 shadow-[inset_0_0_20px_rgba(59,130,246,0.05)]"
                 )}
               >
-                {/* أيقونة الملف مع الخلفية الصلبة */}
-                {getFileIcon(file.category, selectedIds.includes(file.id))}
+                {/* الأيقونة بالنص (الامتداد) */}
+                {getFileIcon(file.extension, file.category, selectedIds.includes(file.id))}
 
                 {/* بيانات الملف */}
                 <div className={cn(
@@ -229,7 +217,7 @@ export default function FileGrid({
                 )}>
                   <span className={cn(
                     "font-semibold truncate w-full",
-                    viewMode === 'list' ? "text-sm" : "text-[13px]" // نصوص أكبر
+                    viewMode === 'list' ? "text-sm" : "text-[13px]"
                   )}>
                     {file.name}
                   </span>
@@ -238,7 +226,7 @@ export default function FileGrid({
                     "text-zinc-500 mt-1 font-bold uppercase",
                     viewMode === 'list' ? "text-[11px]" : "text-[11px]"
                   )}>
-                    {formatFileSize(file.size)} • {file.extension.replace('.', '')}
+                    {formatFileSize(file.size)}
                   </span>
                 </div>
 
