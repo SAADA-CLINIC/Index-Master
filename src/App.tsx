@@ -4,7 +4,6 @@ import SplashScreen from './components/SplashScreen';
 import Sidebar from './components/Sidebar';
 import FileGrid from './components/FileGrid';
 import { FileItem, FileCategory, ViewMode, SortField, SortOrder } from './types';
-import { MOCK_FILES_DATA } from './constants';
 
 export default function App() {
   const [isLoaded, setIsLoaded] = React.useState(false);
@@ -14,51 +13,59 @@ export default function App() {
   const [sortField, setSortField] = React.useState<SortField>('name');
   const [sortOrder, setSortOrder] = React.useState<SortOrder>('asc');
 
-  // Format initial mock data to our interface
-  const initialFiles: FileItem[] = React.useMemo(() => {
-    const files = MOCK_FILES_DATA.map((f, i) => {
+  // مساحة تخزين الملفات الحقيقية (بدل البيانات الوهمية)
+  const [localFiles, setLocalFiles] = React.useState<FileItem[]>([]);
+
+  // دالة فهرسة المجلدات الحقيقية من الهارد ديسك
+  const handleFolderScan = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+
+    // تحويل الملفات الحقيقية للصيغة اللي بيفهمها البرنامج
+    const parsedFiles: FileItem[] = Array.from(files).map((file, i) => {
+      const f = file as any; // To access electron absolute path
       const ext = f.name.substring(f.name.lastIndexOf('.')).toLowerCase();
-      let category: FileCategory = 'Word Files'; // Default fallback
-      
-      // هنا حددنا الأقسام بناءً على الامتداد
-      if (ext === '.pdf' || ext === '.epub' || ext === '.azw3' || ext === '.mobi') category = 'PDF & E-books';
+      let category: FileCategory = 'Word Files';
+
+      if (['.pdf', '.epub', '.azw3', '.mobi'].includes(ext)) category = 'PDF & E-books';
       else if (['.mp4', '.mkv', '.avi', '.mov', '.wmv'].includes(ext)) category = 'Videos';
-      // السطر الجديد اللي بيتعرف على الصور
       else if (['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg', '.ico'].includes(ext)) category = 'Images';
-      
+      else category = 'All';
+
       return {
-        id: `file-${i}`,
+        id: `file-${Date.now()}-${i}`,
         name: f.name,
-        path: f.path,
+        path: f.path || f.webkitRelativePath || f.name, // سحب المسار الحقيقي للملف
         size: f.size,
-        dateModified: new Date(f.date),
+        dateModified: new Date(f.lastModified),
         category,
         extension: ext
       };
-    });
+    }).filter(f => f.category !== 'All'); // استبعاد الملفات غير المدعومة لتخفيف الضغط
 
-    // Detect duplicates by name and size
+    // اكتشاف الملفات المكررة بناءً على الاسم والحجم
     const fileMap = new Map<string, number>();
-    files.forEach(f => {
+    parsedFiles.forEach(f => {
       const uniqueKey = `${f.name}-${f.size}`;
       fileMap.set(uniqueKey, (fileMap.get(uniqueKey) || 0) + 1);
     });
-    return files.map(f => ({
+
+    const finalFiles = parsedFiles.map(f => ({
       ...f,
       isDuplicate: fileMap.get(`${f.name}-${f.size}`)! > 1
     }));
-  }, []);
 
-  // Filtering and Sorting logic
+    setLocalFiles(finalFiles);
+  };
+
+  // الفلترة والترتيب بناءً على الملفات الحقيقية
   const filteredAndSortedFiles = React.useMemo(() => {
-    let result = [...initialFiles];
+    let result = [...localFiles];
 
-    // Filter by Category
     if (activeCategory !== 'All') {
       result = result.filter(f => f.category === activeCategory);
     }
 
-    // Filter by Search Query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(f => 
@@ -68,7 +75,6 @@ export default function App() {
       );
     }
 
-    // Sort
     result.sort((a, b) => {
       let comparison = 0;
       if (sortField === 'name') {
@@ -82,7 +88,7 @@ export default function App() {
     });
 
     return result;
-  }, [initialFiles, activeCategory, searchQuery, sortField, sortOrder]);
+  }, [localFiles, activeCategory, searchQuery, sortField, sortOrder]);
 
   return (
     <div className="min-h-screen bg-bg-deep">
@@ -98,18 +104,30 @@ export default function App() {
           onCategoryChange={setActiveCategory}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
+          onScanFolder={handleFolderScan} // ربط زرار الفهرسة
         />
         
-        <div className="ml-64 flex-1">
-          <FileGrid 
-            files={filteredAndSortedFiles}
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
-            sortField={sortField}
-            onSortFieldChange={setSortField}
-            sortOrder={sortOrder}
-            onToggleSortOrder={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-          />
+        <div className="ml-64 flex-1 p-6">
+          {localFiles.length === 0 ? (
+            // الشاشة الترحيبية قبل إضافة أي ملفات
+            <div className="flex flex-col items-center justify-center h-[80vh] text-zinc-500">
+              <div className="w-24 h-24 mb-6 rounded-full bg-blue-500/10 flex items-center justify-center">
+                <span className="text-4xl">📂</span>
+              </div>
+              <h2 className="text-2xl font-bold text-text-main mb-2">Welcome to IndexMaster</h2>
+              <p>Please click "Scan Folder" in the sidebar to start indexing your files.</p>
+            </div>
+          ) : (
+            <FileGrid 
+              files={filteredAndSortedFiles}
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+              sortField={sortField}
+              onSortFieldChange={setSortField}
+              sortOrder={sortOrder}
+              onToggleSortOrder={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+            />
+          )}
         </div>
       </div>
     </div>
