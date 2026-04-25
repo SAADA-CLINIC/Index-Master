@@ -27,7 +27,15 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create Release and Upload Artifact
+      # --- الجزء الجديد: حفظ البرنامج في الـ Artifacts دائماً ---
+      - name: Upload EXE as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: IndexMaster-App
+          path: dist_electron/*.exe
+
+      # --- الجزء القديم: حفظ البرنامج في الـ Releases لو عملت Tag ---
+      - name: Create Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
