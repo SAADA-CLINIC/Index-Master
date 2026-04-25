@@ -18,9 +18,13 @@ export default function App() {
   const initialFiles: FileItem[] = React.useMemo(() => {
     const files = MOCK_FILES_DATA.map((f, i) => {
       const ext = f.name.substring(f.name.lastIndexOf('.')).toLowerCase();
-      let category: FileCategory = 'Word Files';
+      let category: FileCategory = 'Word Files'; // Default fallback
+      
+      // هنا حددنا الأقسام بناءً على الامتداد
       if (ext === '.pdf' || ext === '.epub' || ext === '.azw3' || ext === '.mobi') category = 'PDF & E-books';
       else if (['.mp4', '.mkv', '.avi', '.mov', '.wmv'].includes(ext)) category = 'Videos';
+      // السطر الجديد اللي بيتعرف على الصور
+      else if (['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg', '.ico'].includes(ext)) category = 'Images';
       
       return {
         id: `file-${i}`,
