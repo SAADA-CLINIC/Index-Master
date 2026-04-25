@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Search, FileText, Book, Film, Database, Settings, HardDrive, Moon, Sun, Coffee, RefreshCw } from 'lucide-react';
+// ضفنا هنا Image as ImageIcon في السطر ده
+import { Search, FileText, Book, Film, Database, Settings, HardDrive, Moon, Sun, Coffee, RefreshCw, Image as ImageIcon } from 'lucide-react';
 import { FileCategory } from '../types';
 import { cn } from '../lib/utils';
 
@@ -19,6 +20,8 @@ export default function Sidebar({ activeCategory, onCategoryChange, searchQuery,
     { id: 'Word Files', icon: FileText, label: 'Word Files' },
     { id: 'PDF & E-books', icon: Book, label: 'PDF & E-books' },
     { id: 'Videos', icon: Film, label: 'Videos' },
+    // السطر الجديد الخاص بقسم الصور
+    { id: 'Images', icon: ImageIcon, label: 'Images' },
   ];
 
   return (
@@ -90,7 +93,7 @@ export default function Sidebar({ activeCategory, onCategoryChange, searchQuery,
         {/* System Settings & Theme Menu */}
         <div className="mt-4 flex flex-col gap-2 relative">
           
-          {/* Themes Popup (تفتح بجانب الزرار لليمين حتى لا تغطي الـ Storage) */}
+          {/* Themes Popup */}
           {showSettings && (
             <div className="absolute bottom-0 left-full ml-2 w-48 bg-bg-sidebar border border-border-subtle rounded-xl p-2 shadow-2xl flex flex-col gap-2 z-50">
               <div className="text-[10px] uppercase px-2 text-zinc-500 font-bold">Themes</div>
