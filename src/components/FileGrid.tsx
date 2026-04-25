@@ -52,40 +52,44 @@ export default function FileGrid({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  // دالة ترجع أيقونة الملف مع الخلفية الصلبة حسب الفئة
+  // دالة ترجع أيقونة الملف مع الخلفية الصلبة حسب الفئة (مكبرة)
   const getFileIcon = (category: string, isSelected: boolean) => {
-    const size = viewMode === 'list' ? 20 : 32;
+    // ضاعفنا الأحجام: للشبكة 56px، للقائمة 36px
+    const sizeIcon = viewMode === 'list' ? 28 : 48;
     let icon;
     let bgColor;
     
     switch (category) {
       case 'Word Files':
-        icon = <FileText size={size} className="text-white" />;
+        icon = <FileText size={sizeIcon} className="text-white" />;
         bgColor = 'bg-blue-500';
         break;
       case 'PDF & E-books':
-        icon = <Book size={size} className="text-white" />;
+        icon = <Book size={sizeIcon} className="text-white" />;
         bgColor = 'bg-red-500';
         break;
       case 'Videos':
-        icon = <Film size={size} className="text-white" />;
+        icon = <Film size={sizeIcon} className="text-white" />;
         bgColor = 'bg-purple-500';
         break;
       case 'Images':
-        icon = <FileText size={size} className="text-white" />; // يمكن استخدام ImageIcon، لكننا نستخدم FileText كمثال
+        icon = <FileText size={sizeIcon} className="text-white" />; // يمكن استبداله بـ ImageIcon
         bgColor = 'bg-green-500';
         break;
       default:
-        icon = <FileText size={size} className="text-white" />;
+        icon = <FileText size={sizeIcon} className="text-white" />;
         bgColor = 'bg-gray-500';
     }
 
+    // أحجام الحاوية مكبرة أيضًا: للشبكة 20×20 (تعادل 80px)، للقائمة 12×12 (48px)
+    const containerSize = viewMode === 'list' ? 'w-14 h-14' : 'w-20 h-20 mb-4';
+
     return (
       <div className={cn(
-        'flex items-center justify-center rounded-lg transition-all',
+        'flex items-center justify-center rounded-xl transition-all', // rounded-xl أنعم
         bgColor,
         isSelected ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-bg-main' : '',
-        viewMode === 'list' ? 'w-10 h-10' : 'w-16 h-16 mb-3'
+        containerSize
       )}>
         {icon}
       </div>
@@ -190,10 +194,10 @@ export default function FileGrid({
           </div>
         ) : (
           <div className={cn(
-            "grid gap-4",
+            "grid gap-6", // زيادة الفراغ بين العناصر
             viewMode === 'list' 
               ? "grid-cols-1" 
-              : "grid-cols-[repeat(auto-fill,minmax(130px,1fr))]"
+              : "grid-cols-[repeat(auto-fill,minmax(160px,1fr))]" // عرض أدنى أكبر
           )}>
             {files.map((file) => (
               <motion.div
@@ -210,8 +214,8 @@ export default function FileGrid({
                 className={cn(
                   "relative group flex cursor-pointer transition-all rounded-xl border",
                   viewMode === 'list' 
-                    ? "flex-row items-center gap-6 px-4 py-2 border-transparent hover:bg-black/5"
-                    : "flex-col items-center p-4 border-transparent hover:bg-black/5 hover:border-border-subtle",
+                    ? "flex-row items-center gap-6 px-5 py-4 border-transparent hover:bg-black/5" // مساحات أكبر
+                    : "flex-col items-center p-6 border-transparent hover:bg-black/5 hover:border-border-subtle", // padding أكبر
                   selectedIds.includes(file.id) && "bg-blue-600/10 border-blue-600/30 shadow-[inset_0_0_20px_rgba(59,130,246,0.05)]"
                 )}
               >
@@ -223,18 +227,24 @@ export default function FileGrid({
                   "flex flex-col overflow-hidden",
                   viewMode === 'list' ? "flex-1" : "items-center text-center w-full"
                 )}>
-                  <span className="text-[11px] font-semibold truncate w-full">
+                  <span className={cn(
+                    "font-semibold truncate w-full",
+                    viewMode === 'list' ? "text-sm" : "text-[13px]" // نصوص أكبر
+                  )}>
                     {file.name}
                   </span>
                   
-                  <span className="text-[9px] text-zinc-500 mt-0.5 font-bold uppercase">
+                  <span className={cn(
+                    "text-zinc-500 mt-1 font-bold uppercase",
+                    viewMode === 'list' ? "text-[11px]" : "text-[11px]"
+                  )}>
                     {formatFileSize(file.size)} • {file.extension.replace('.', '')}
                   </span>
                 </div>
 
                 {file.isDuplicate && (
                   <div className="absolute top-2 right-2 text-orange-500" title="Duplicate Found">
-                    <AlertCircle size={12} />
+                    <AlertCircle size={16} />
                   </div>
                 )}
               </motion.div>
