@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-// ضفنا هنا Image as ImageIcon في السطر ده
-import { Search, FileText, Book, Film, Database, Settings, HardDrive, Moon, Sun, Coffee, RefreshCw, Image as ImageIcon } from 'lucide-react';
+import { Search, FileText, Book, Film, Database, Settings, HardDrive, Moon, Sun, Coffee, RefreshCw, Image as ImageIcon, FolderOpen } from 'lucide-react';
 import { FileCategory } from '../types';
 import { cn } from '../lib/utils';
 
@@ -9,10 +8,10 @@ interface SidebarProps {
   onCategoryChange: (category: FileCategory) => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
+  onScanFolder: (event: React.ChangeEvent<HTMLInputElement>) => void; // تعريف الحدث الجديد
 }
 
-export default function Sidebar({ activeCategory, onCategoryChange, searchQuery, onSearchChange }: SidebarProps) {
-  // حالة التحكم في ظهور قائمة الإعدادات والألوان
+export default function Sidebar({ activeCategory, onCategoryChange, searchQuery, onSearchChange, onScanFolder }: SidebarProps) {
   const [showSettings, setShowSettings] = useState(false);
 
   const navItems = [
@@ -20,7 +19,6 @@ export default function Sidebar({ activeCategory, onCategoryChange, searchQuery,
     { id: 'Word Files', icon: FileText, label: 'Word Files' },
     { id: 'PDF & E-books', icon: Book, label: 'PDF & E-books' },
     { id: 'Videos', icon: Film, label: 'Videos' },
-    // السطر الجديد الخاص بقسم الصور
     { id: 'Images', icon: ImageIcon, label: 'Images' },
   ];
 
@@ -35,13 +33,30 @@ export default function Sidebar({ activeCategory, onCategoryChange, searchQuery,
         <span className="text-lg font-bold tracking-tight text-text-main">IndexMaster</span>
       </div>
 
+      {/* --- زرار سحب الملفات الحقيقية (الجديد) --- */}
+      <div className="px-4 mb-6">
+        <label className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg cursor-pointer transition-all shadow-lg shadow-blue-500/20 text-sm font-bold">
+          <FolderOpen size={18} />
+          Scan Folder
+          <input
+            type="file"
+            // @ts-ignore
+            webkitdirectory="true"
+            directory="true"
+            multiple
+            className="hidden"
+            onChange={onScanFolder}
+          />
+        </label>
+      </div>
+
       {/* Global Search */}
       <div className="px-4 mb-6">
         <div className="relative group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-dim transition-colors group-focus-within:text-blue-500" size={16} />
           <input
             type="text"
-            placeholder="Global search..."
+            placeholder="Search files..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             className="w-full bg-black/10 border border-transparent focus:border-blue-500 text-sm rounded-lg py-2 pl-10 pr-4 outline-none transition-all placeholder:text-zinc-600 text-text-main"
@@ -74,41 +89,18 @@ export default function Sidebar({ activeCategory, onCategoryChange, searchQuery,
 
       {/* Bottom Section: Storage & Settings */}
       <div className="p-4 border-t border-border-subtle mt-auto">
-        
-        {/* Local Storage Info Card */}
-        <div className="bg-black/5 rounded-xl p-4 border border-border-subtle">
-          <div className="text-xs text-zinc-500 mb-2">Local Storage</div>
-          <div className="w-full bg-zinc-800 h-1.5 rounded-full mb-2">
-            <div 
-              className="bg-blue-500 h-full rounded-full shadow-[0_0_8px_rgba(59,130,246,0.4)] transition-all duration-1000" 
-              style={{ width: '72%' }}
-            />
-          </div>
-          <div className="flex justify-between text-[10px] text-zinc-400 font-mono">
-            <span>342 GB Free</span>
-            <span>1 TB Total</span>
-          </div>
-        </div>
-        
-        {/* System Settings & Theme Menu */}
-        <div className="mt-4 flex flex-col gap-2 relative">
-          
-          {/* Themes Popup */}
+        <div className="mt-2 flex flex-col gap-2 relative">
           {showSettings && (
-            <div className="absolute bottom-0 left-full ml-2 w-48 bg-bg-sidebar border border-border-subtle rounded-xl p-2 shadow-2xl flex flex-col gap-2 z-50">
+            <div className="absolute bottom-full left-0 mb-2 w-full bg-bg-sidebar border border-border-subtle rounded-xl p-2 shadow-2xl flex flex-col gap-2 z-50">
               <div className="text-[10px] uppercase px-2 text-zinc-500 font-bold">Themes</div>
               <div className="flex justify-between bg-black/10 p-1 rounded-lg">
                 <button onClick={() => document.documentElement.className = ''} className="p-2 hover:bg-black/10 rounded text-zinc-500 hover:text-blue-400 transition-all" title="Dark Mode"><Moon size={14} /></button>
                 <button onClick={() => document.documentElement.className = 'theme-light'} className="p-2 hover:bg-black/10 rounded text-zinc-500 hover:text-blue-500 transition-all" title="Light Mode"><Sun size={14} /></button>
                 <button onClick={() => document.documentElement.className = 'theme-beige'} className="p-2 hover:bg-black/10 rounded text-zinc-500 hover:text-amber-700 transition-all" title="Beige Mode"><Coffee size={14} /></button>
               </div>
-              <button className="flex items-center gap-2 w-full px-2 py-1.5 text-[11px] text-zinc-500 hover:text-blue-400 transition-colors">
-                <RefreshCw size={12} /> Force Refresh
-              </button>
             </div>
           )}
 
-          {/* Settings Trigger Button */}
           <button 
             onClick={() => setShowSettings(!showSettings)}
             className={cn(
